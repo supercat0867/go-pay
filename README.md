@@ -131,7 +131,7 @@ func main() {
 	client := pb.NewPayServiceClient(conn)
 
 	resp, err := client.GetWechatPrepayInfoJsAPI(context.Background(), &pb.WechatPrepayInfoJsAPIRequest{
-		MchId:       1, // 商户ID非商户号
+		MchId:       "123456", // 商户号
 		Amount:      1,
 		Description: "测试商品",
 		ExpireTime:  "1731674980000",

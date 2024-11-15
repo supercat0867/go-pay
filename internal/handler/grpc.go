@@ -27,3 +27,8 @@ func (h *Handler) GetMerchants(ctx context.Context, req *pb.GetMerchantsRequest)
 func (h *Handler) GetWechatPrepayInfoJsAPI(ctx context.Context, req *pb.WechatPrepayInfoJsAPIRequest) (*pb.WechatPrepayInfoJsAPIResponse, error) {
 	return h.Service.GetWechatPrePayInfoJsAPI(req)
 }
+
+// WechatPayRefund 微信支付退款
+func (h *Handler) WechatPayRefund(ctx context.Context, req *pb.WechatPayRefundRequest) (*pb.WechatPayRefundResponse, error) {
+	return h.Service.WechatPayRefund(req)
+}

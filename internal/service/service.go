@@ -15,13 +15,13 @@ import (
 
 type Service struct {
 	MerchantRepo *repository.MerchantRepo
-	PayRepo      *repository.PayRepo
+	OrderRepo    *repository.OrderRepo
 }
 
-func NewService(merchantRepo *repository.MerchantRepo, payRepo *repository.PayRepo) *Service {
+func NewService(merchantRepo *repository.MerchantRepo, orderRepo *repository.OrderRepo) *Service {
 	return &Service{
 		MerchantRepo: merchantRepo,
-		PayRepo:      payRepo,
+		OrderRepo:    orderRepo,
 	}
 }
 
@@ -97,7 +97,7 @@ func (s *Service) GetMerchants(req *pb.GetMerchantsRequest) *pb.GetMerchantsResp
 // GetWechatPrePayInfoJsAPI 发起微信支付-jsapi
 func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest) (*pb.WechatPrepayInfoJsAPIResponse, error) {
 	// 查询商户
-	merchant, err := s.MerchantRepo.FindByID(uint(req.MchId))
+	merchant, err := s.MerchantRepo.FindByMchID(req.MchId)
 	if err != nil {
 		return nil, errors.New("merchant not found")
 	}
@@ -107,7 +107,7 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 	}
 
 	// 检查订单是否已存在
-	_, err = s.PayRepo.FindByMchIDAndOrderID(merchant.MchID, req.OutTradeNo)
+	_, err = s.OrderRepo.FindByMchIDAndOrderID(merchant.MchID, req.OutTradeNo)
 	if err == nil {
 		return nil, errors.New("order already exists")
 	}
@@ -120,7 +120,7 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 		return nil, errors.New("expire time format error")
 	}
 
-	notifyUrl := fmt.Sprintf("%s/wechatpay/notify/%d", os.Getenv("NOTIFY_DOMAIN"), merchant.ID)
+	notifyUrl := fmt.Sprintf("%s/wechatpay/notify/%s", os.Getenv("NOTIFY_DOMAIN"), merchant.MchID)
 	prepayInfo, err := client.GetPrepayInfo(req.Description, req.OutTradeNo, req.Openid, notifyUrl,
 		expireTime, req.Amount)
 	if err != nil {
@@ -128,7 +128,7 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 	}
 
 	// 创建支付记录
-	pay := &model.Pay{
+	pay := &model.Order{
 		MchID:    merchant.MchID,
 		TradeNo:  req.OutTradeNo,
 		PayState: model.PayStatePending,
@@ -137,7 +137,7 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 		OpenID:   req.Openid,
 		ExpireAt: expireTime,
 	}
-	if err = s.PayRepo.Create(pay); err != nil {
+	if err = s.OrderRepo.Create(pay); err != nil {
 		log.Println(err)
 	}
 
@@ -151,4 +151,45 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 	}, nil
 }
 
-// TODO 轮询未支付的订单来获取最新状态
+// WechatPayRefund 微信支付退款
+func (s *Service) WechatPayRefund(req *pb.WechatPayRefundRequest) (*pb.WechatPayRefundResponse, error) {
+	// 查询商户
+	merchant, err := s.MerchantRepo.FindByMchID(req.MchId)
+	if err != nil {
+		return nil, errors.New("merchant not found")
+	}
+	// 检查商户平台是否匹配
+	if merchant.PlantForm != model.WeChatPay {
+		return nil, errors.New("platform not match")
+	}
+
+	// 查询订单
+	order, err := s.OrderRepo.FindByMchIDAndOrderID(merchant.MchID, req.OutTradeNo)
+	if err != nil {
+		return nil, errors.New("order not found")
+	}
+
+	// 实例化jsapi client
+	client := jsapi.NewClient(merchant.AppID, merchant.MchID, merchant.Secret, merchant.Cert, merchant.CertNum)
+	// 发起退款
+	notifyUrl := fmt.Sprintf("%s/wechatpay/refund/%s", os.Getenv("NOTIFY_DOMAIN"), merchant.MchID)
+	resp, err := client.Refund(order.TransactionID, req.OutRefundNo, req.Reason, notifyUrl, req.Refund, req.Total)
+	if err != nil {
+		return nil, err
+	}
+
+	order.RefundNo = req.OutRefundNo
+	order.RefundID = *resp.RefundId
+	order.PayState = model.PayStateRefund
+	if err = s.OrderRepo.Update(order); err != nil {
+		log.Println(err)
+	}
+
+	return &pb.WechatPayRefundResponse{
+		Channel:       string(*resp.Channel),
+		OutRefundNo:   *resp.OutRefundNo,
+		OutTradeNo:    *resp.OutTradeNo,
+		RefundId:      *resp.RefundId,
+		TransactionId: *resp.TransactionId,
+	}, nil
+}

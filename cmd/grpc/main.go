@@ -25,8 +25,8 @@ func main() {
 
 	database.InitDB()
 	merchantRepo := repository.NewMerchantRepo(database.DB)
-	payRepo := repository.NewPayRepo(database.DB)
-	service := service2.NewService(merchantRepo, payRepo)
+	orderRepo := repository.NewOrderRepo(database.DB)
+	service := service2.NewService(merchantRepo, orderRepo)
 
 	// 注册服务
 	pb.RegisterMerchantServiceServer(grpcServer, &handler.Handler{Service: service})

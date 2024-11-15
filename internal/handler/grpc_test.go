@@ -21,8 +21,8 @@ func TestHandler_CreateMerchant(t *testing.T) {
 
 	database.InitDB()
 	merchantRepo := repository.NewMerchantRepo(database.DB)
-	payRepo := repository.NewPayRepo(database.DB)
-	service := service2.NewService(merchantRepo, payRepo)
+	orderRepo := repository.NewOrderRepo(database.DB)
+	service := service2.NewService(merchantRepo, orderRepo)
 	handler := Handler{
 		Service: service,
 	}
@@ -53,8 +53,8 @@ func TestHandler_GetMerchants(t *testing.T) {
 
 	database.InitDB()
 	merchantRepo := repository.NewMerchantRepo(database.DB)
-	payRepo := repository.NewPayRepo(database.DB)
-	service := service2.NewService(merchantRepo, payRepo)
+	orderRepo := repository.NewOrderRepo(database.DB)
+	service := service2.NewService(merchantRepo, orderRepo)
 	handler := Handler{
 		Service: service,
 	}
@@ -79,14 +79,14 @@ func TestHandler_GetWechatPrepayInfoJsAPI(t *testing.T) {
 	}
 	database.InitDB()
 	merchantRepo := repository.NewMerchantRepo(database.DB)
-	payRepo := repository.NewPayRepo(database.DB)
-	service := service2.NewService(merchantRepo, payRepo)
+	orderRepo := repository.NewOrderRepo(database.DB)
+	service := service2.NewService(merchantRepo, orderRepo)
 	handler := Handler{
 		Service: service,
 	}
 
 	resp, err := handler.GetWechatPrepayInfoJsAPI(context.Background(), &pb.WechatPrepayInfoJsAPIRequest{
-		MchId:       1, // 商户ID非商户号
+		MchId:       "123456",
 		Amount:      1,
 		Description: "测试商品",
 		ExpireTime:  "1731674980000",

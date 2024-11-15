@@ -12,13 +12,13 @@ import (
 // DealWechatPayNotify 处理微信支付
 func (h *Handler) DealWechatPayNotify(g *gin.Context) {
 	mchId := g.Param("id")
-	mchIdInt, err := strconv.Atoi(mchId)
+	_, err := strconv.Atoi(mchId)
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"code": "FAIL"})
 		return
 	}
 	// 查询商户信息
-	merchant, err := h.Service.MerchantRepo.FindByID(uint(mchIdInt))
+	merchant, err := h.Service.MerchantRepo.FindByMchID(mchId)
 	if err != nil {
 		g.JSON(http.StatusInternalServerError, gin.H{"code": "FAIL"})
 		return
@@ -31,7 +31,7 @@ func (h *Handler) DealWechatPayNotify(g *gin.Context) {
 	}
 
 	// 查询支付记录
-	pay, err := h.Service.PayRepo.FindByMchIDAndOrderID(resp.MchID, resp.OutTradeNo)
+	pay, err := h.Service.OrderRepo.FindByMchIDAndOrderID(resp.MchID, resp.OutTradeNo)
 	if err != nil {
 		g.JSON(http.StatusOK, gin.H{"code": "SUCCESS"})
 		return
@@ -46,7 +46,7 @@ func (h *Handler) DealWechatPayNotify(g *gin.Context) {
 		// 更新支付记录状态
 		pay.PayState = model.PayStateSuccess
 		pay.TransactionID = resp.TransactionID
-		if err = h.Service.PayRepo.Update(pay); err != nil {
+		if err = h.Service.OrderRepo.Update(pay); err != nil {
 			log.Println(err)
 			g.JSON(http.StatusInternalServerError, gin.H{"code": "FAIL"})
 			return

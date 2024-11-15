@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	PayService_GetWechatPrepayInfoJsAPI_FullMethodName = "/PayService/GetWechatPrepayInfoJsAPI"
+	PayService_WechatPayRefund_FullMethodName          = "/PayService/WechatPayRefund"
 )
 
 // PayServiceClient is the client API for PayService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PayServiceClient interface {
 	GetWechatPrepayInfoJsAPI(ctx context.Context, in *WechatPrepayInfoJsAPIRequest, opts ...grpc.CallOption) (*WechatPrepayInfoJsAPIResponse, error)
+	WechatPayRefund(ctx context.Context, in *WechatPayRefundRequest, opts ...grpc.CallOption) (*WechatPayRefundResponse, error)
 }
 
 type payServiceClient struct {
@@ -47,11 +49,22 @@ func (c *payServiceClient) GetWechatPrepayInfoJsAPI(ctx context.Context, in *Wec
 	return out, nil
 }
 
+func (c *payServiceClient) WechatPayRefund(ctx context.Context, in *WechatPayRefundRequest, opts ...grpc.CallOption) (*WechatPayRefundResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(WechatPayRefundResponse)
+	err := c.cc.Invoke(ctx, PayService_WechatPayRefund_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PayServiceServer is the server API for PayService service.
 // All implementations must embed UnimplementedPayServiceServer
 // for forward compatibility.
 type PayServiceServer interface {
 	GetWechatPrepayInfoJsAPI(context.Context, *WechatPrepayInfoJsAPIRequest) (*WechatPrepayInfoJsAPIResponse, error)
+	WechatPayRefund(context.Context, *WechatPayRefundRequest) (*WechatPayRefundResponse, error)
 	mustEmbedUnimplementedPayServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedPayServiceServer struct{}
 
 func (UnimplementedPayServiceServer) GetWechatPrepayInfoJsAPI(context.Context, *WechatPrepayInfoJsAPIRequest) (*WechatPrepayInfoJsAPIResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetWechatPrepayInfoJsAPI not implemented")
+}
+func (UnimplementedPayServiceServer) WechatPayRefund(context.Context, *WechatPayRefundRequest) (*WechatPayRefundResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WechatPayRefund not implemented")
 }
 func (UnimplementedPayServiceServer) mustEmbedUnimplementedPayServiceServer() {}
 func (UnimplementedPayServiceServer) testEmbeddedByValue()                    {}
@@ -104,6 +120,24 @@ func _PayService_GetWechatPrepayInfoJsAPI_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PayService_WechatPayRefund_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WechatPayRefundRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PayServiceServer).WechatPayRefund(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PayService_WechatPayRefund_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PayServiceServer).WechatPayRefund(ctx, req.(*WechatPayRefundRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PayService_ServiceDesc is the grpc.ServiceDesc for PayService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var PayService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetWechatPrepayInfoJsAPI",
 			Handler:    _PayService_GetWechatPrepayInfoJsAPI_Handler,
+		},
+		{
+			MethodName: "WechatPayRefund",
+			Handler:    _PayService_WechatPayRefund_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -7,7 +7,7 @@ option go_package = ".;service";
 
 message WechatPrepayInfoJsAPIRequest{
   string openid = 1; // 支付方openid
-  uint64 mch_id = 2; // 商户id
+  string mch_id = 2; // 商户号
   float amount = 3; // 金额
   string out_trade_no = 4; // 商户订单号
   string description = 5; // 订单描述
@@ -23,6 +23,26 @@ message WechatPrepayInfoJsAPIResponse{
   string paySign = 6;// 签名
 }
 
+message WechatPayRefundRequest{
+  string mch_id = 1; // 商户号
+  float refund = 2; // 退款金额
+  float total = 3; // 订单总金额
+  string out_trade_no = 4; // 商户订单号
+  string out_refund_no = 5; // 退款单号
+  string reason = 6; // 退款原因
+}
+
+message WechatPayRefundResponse{
+  string refund_id = 1; // 微信支付退款号
+  string out_refund_no = 2; // 商户退款单号
+  string transaction_id = 3; // 微信支付交易订单号
+  string out_trade_no = 4; // 商户订单号
+  string channel = 5; // 退款渠道
+}
+
+
 service PayService {
   rpc GetWechatPrepayInfoJsAPI(WechatPrepayInfoJsAPIRequest) returns (WechatPrepayInfoJsAPIResponse);
+
+  rpc WechatPayRefund(WechatPayRefundRequest) returns (WechatPayRefundResponse);
 }

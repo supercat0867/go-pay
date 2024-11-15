@@ -5,11 +5,13 @@ import (
 	"time"
 )
 
-type Pay struct {
+type Order struct {
 	gorm.Model
 	MchID         string    `gorm:"not null"` // 商户号
 	TradeNo       string    `gorm:"not null"` // 系统订单号
+	RefundNo      string    // 退款单号
 	TransactionID string    // 平台订单号
+	RefundID      string    // 退款单号
 	PayType       PayType   `gorm:"not null;size:1"` // 交易类型
 	OpenID        string    // 微信openid
 	Amount        float32   // 金额

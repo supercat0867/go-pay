@@ -21,12 +21,13 @@ func main() {
 
 	database.InitDB()
 	merchantRepo := repository.NewMerchantRepo(database.DB)
-	payRepo := repository.NewPayRepo(database.DB)
-	service := service2.NewService(merchantRepo, payRepo)
+	orderRepo := repository.NewOrderRepo(database.DB)
+	service := service2.NewService(merchantRepo, orderRepo)
 	controller := &handler.Handler{Service: service}
 
 	// 微信支付通知回调
 	r.POST("/wechatpay/notify/:id", controller.DealWechatPayNotify)
+	// TODO 微信退款通知回调
 
 	r.Run(":8080")
 }

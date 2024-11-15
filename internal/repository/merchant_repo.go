@@ -39,9 +39,10 @@ func (r *MerchantRepo) Find(page, pageSize int, params map[string]interface{}) (
 	return merchants, int(total)
 }
 
-func (r *MerchantRepo) FindByID(id uint) (*model.Merchant, error) {
+// FindByMchID 根据商户号查询商户信息
+func (r *MerchantRepo) FindByMchID(mchId string) (*model.Merchant, error) {
 	var merchant model.Merchant
-	if err := r.db.Where("ID = ?", id).First(&merchant).Error; err != nil {
+	if err := r.db.Where("MchID = ?", mchId).First(&merchant).Error; err != nil {
 		return nil, err
 	}
 	return &merchant, nil

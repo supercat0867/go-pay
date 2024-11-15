@@ -5,10 +5,10 @@ import "gorm.io/gorm"
 // Merchant 商户模型
 type Merchant struct {
 	gorm.Model
-	Name      string    `gorm:"size:100"` // 商户名称
-	PlantForm PlantForm `gorm:"size:1"`   // 支付平台
-	AppID     string    `gorm:"size:100"` // 应用ID
-	MchID     string    `gorm:"size:100"` // 商户号
+	Name      string    `gorm:"size:100"`        // 商户名称
+	PlantForm PlantForm `gorm:"size:1"`          // 支付平台
+	AppID     string    `gorm:"size:100"`        // 应用ID
+	MchID     string    `gorm:"size:100;unique"` // 商户号
 	Cert      string    // 证书
 	CertNum   string    // 证书序列号
 	Secret    string    // 密钥

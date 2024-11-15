@@ -10,6 +10,7 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 	"net/http"
 	"strings"
@@ -122,4 +123,50 @@ func (c *Client) DealPayNotify(req *http.Request) (*PayNotifyResponse, error) {
 	}
 
 	return &resp, nil
+}
+
+// Refund 退款申请
+// reason: 退款原因
+// outTradeNo: 商户订单号
+// outRefundNo: 商户退款单号
+// refund: 退款金额
+// total: 订单金额
+func (c *Client) Refund(outTradeNo, outRefundNo, reason, notifyUrl string,
+	refund, total float32) (*refunddomestic.Refund, error) {
+	privateKeyStr := c.Cert
+	privateKeyStr = strings.ReplaceAll(privateKeyStr, "\r\n", "\n")
+	privateKeyStr = strings.TrimSpace(privateKeyStr)
+	mchPrivateKey, err := utils.LoadPrivateKey(privateKeyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	opts := []core.ClientOption{
+		option.WithWechatPayAutoAuthCipher(c.MchId, c.CertNum, mchPrivateKey, c.Secret),
+	}
+	client, err := core.NewClient(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := refunddomestic.RefundsApiService{Client: client}
+	resp, _, err := svc.Create(ctx,
+		refunddomestic.CreateRequest{
+			OutTradeNo:   core.String(outTradeNo),
+			OutRefundNo:  core.String(outRefundNo),
+			Reason:       core.String(reason),
+			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
+			Amount: &refunddomestic.AmountReq{
+				Currency: core.String("CNY"),
+				Refund:   core.Int64(int64(refund * 100)),
+				Total:    core.Int64(int64(total * 100)),
+			},
+			NotifyUrl: core.String(notifyUrl),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }

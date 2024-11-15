@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+
+option go_package = ".;service";
+
+
+
+message WechatPrepayInfoJsAPIRequest{
+  string openid = 1; // 支付方openid
+  uint64 mch_id = 2; // 商户id
+  float amount = 3; // 金额
+  string out_trade_no = 4; // 商户订单号
+  string description = 5; // 订单描述
+  string expire_time = 6; // 过期时间（毫秒级时间戳）
+}
+
+message WechatPrepayInfoJsAPIResponse{
+  string appId = 1; // appid
+  string timeStamp = 2; // 时间戳
+  string nonceStr = 3;
+  string package = 4;
+  string signType = 5; // 签名类型
+  string paySign = 6;// 签名
+}
+
+service PayService {
+  rpc GetWechatPrepayInfoJsAPI(WechatPrepayInfoJsAPIRequest) returns (WechatPrepayInfoJsAPIResponse);
+}

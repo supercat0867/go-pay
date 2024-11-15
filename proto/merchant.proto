@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+
+option go_package = ".;service";
+
+
+
+message Merchant {
+  uint64 id = 1;
+  string name = 2;
+  uint64 plant_form = 3;
+  string plant_form_name = 4;
+  string app_id = 5;
+  string mch_id = 6;
+  string cert = 7;
+  string cert_num = 8;
+  string secret = 9;
+  string created_at = 10;
+}
+
+
+message CreateMerchantRequest {
+  string name = 1;
+  uint64 platform = 2;
+  string app_id = 3;
+  string mch_id = 4;
+  string cert = 5;
+  string cert_num = 6;
+  string secret = 7;
+}
+
+
+message CreateMerchantResponse {
+  Merchant merchant = 1;
+}
+
+
+message GetMerchantsRequest {
+  string mch_id = 1;
+  string plant_form = 2;
+  string name = 3;
+  uint64 page = 4;
+  uint64 page_size = 5;
+}
+
+
+message GetMerchantsResponse {
+  repeated Merchant merchants = 1;
+  uint64 total = 2;
+  uint64 page = 3;
+  uint64 page_size = 4;
+}
+
+service MerchantService {
+
+  rpc CreateMerchant(CreateMerchantRequest) returns (CreateMerchantResponse);
+
+  rpc GetMerchants(GetMerchantsRequest) returns (GetMerchantsResponse);
+}

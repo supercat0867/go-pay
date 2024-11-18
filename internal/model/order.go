@@ -7,6 +7,7 @@ import (
 
 type Order struct {
 	gorm.Model
+	MerchantID    uint      `gorm:"index"`    // 商户id
 	MchID         string    `gorm:"not null"` // 商户号
 	TradeNo       string    `gorm:"not null"` // 系统订单号
 	RefundNo      string    // 退款单号
@@ -17,6 +18,9 @@ type Order struct {
 	Amount        float32   // 金额
 	ExpireAt      time.Time `gorm:"not null"`        // 过期时间
 	PayState      PayState  `gorm:"not null;size:1"` // 支付状态
+	NotifyUrl     string    // 回调地址
+
+	Merchant Merchant `gorm:"foreignKey:MerchantID" `
 }
 
 type PayState int

@@ -12,6 +12,7 @@ message WechatPrepayInfoJsAPIRequest{
   string out_trade_no = 4; // 商户订单号
   string description = 5; // 订单描述
   string expire_time = 6; // 过期时间（毫秒级时间戳）
+  string notify_url = 7; // 回调地址
 }
 
 message WechatPrepayInfoJsAPIResponse{
@@ -30,6 +31,7 @@ message WechatPayRefundRequest{
   string out_trade_no = 4; // 商户订单号
   string out_refund_no = 5; // 退款单号
   string reason = 6; // 退款原因
+  string notify_url = 7; // 回调地址
 }
 
 message WechatPayRefundResponse{

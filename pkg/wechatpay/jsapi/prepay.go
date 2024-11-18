@@ -2,17 +2,13 @@ package jsapi
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
-	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
-	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
-	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -87,44 +83,6 @@ func (c *Client) GetPrepayInfo(description, outTradeNo, openId, notifyUrl string
 	}, nil
 }
 
-// DealPayNotify 处理支付结果通知
-func (c *Client) DealPayNotify(req *http.Request) (*PayNotifyResponse, error) {
-	privateKeyStr := c.Cert
-	privateKeyStr = strings.ReplaceAll(privateKeyStr, "\r\n", "\n")
-	privateKeyStr = strings.TrimSpace(privateKeyStr)
-	mchPrivateKey, err := utils.LoadPrivateKey(privateKeyStr)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx := context.Background()
-	err = downloader.MgrInstance().RegisterDownloaderWithPrivateKey(ctx, mchPrivateKey, c.CertNum,
-		c.MchId, c.Secret)
-	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(c.MchId)
-	handler, err := notify.NewRSANotifyHandler(c.Secret, verifiers.NewSHA256WithRSAVerifier(certificateVisitor))
-	if err != nil {
-		return nil, err
-	}
-
-	content := make(map[string]interface{})
-	_, err = handler.ParseNotifyRequest(context.Background(), req, &content)
-	if err != nil {
-		return nil, err
-	}
-
-	jsonData, err := json.Marshal(content)
-	if err != nil {
-		return nil, err
-	}
-	var resp PayNotifyResponse
-	err = json.Unmarshal(jsonData, &resp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
-}
-
 // Refund 退款申请
 // reason: 退款原因
 // outTradeNo: 商户订单号
@@ -163,6 +121,69 @@ func (c *Client) Refund(outTradeNo, outRefundNo, reason, notifyUrl string,
 				Total:    core.Int64(int64(total * 100)),
 			},
 			NotifyUrl: core.String(notifyUrl),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// QueryByOutTradeNo 根据商户订单号查询订单
+// outTradeNo: 商户订单号
+func (c *Client) QueryByOutTradeNo(outTradeNo string) (*payments.Transaction, error) {
+	privateKeyStr := c.Cert
+	privateKeyStr = strings.ReplaceAll(privateKeyStr, "\r\n", "\n")
+	privateKeyStr = strings.TrimSpace(privateKeyStr)
+	mchPrivateKey, err := utils.LoadPrivateKey(privateKeyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	opts := []core.ClientOption{
+		option.WithWechatPayAutoAuthCipher(c.MchId, c.CertNum, mchPrivateKey, c.Secret),
+	}
+	client, err := core.NewClient(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+	svc := jsapi.JsapiApiService{Client: client}
+	resp, _, err := svc.QueryOrderByOutTradeNo(ctx,
+		jsapi.QueryOrderByOutTradeNoRequest{
+			OutTradeNo: core.String(outTradeNo),
+			Mchid:      core.String(c.MchId),
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// QueryRefundByOutRefundNo 根据商户退款单号查询退款
+// outRefundNo: 商户退款单号
+func (c *Client) QueryRefundByOutRefundNo(outRefundNo string) (*refunddomestic.Refund, error) {
+	privateKeyStr := c.Cert
+	privateKeyStr = strings.ReplaceAll(privateKeyStr, "\r\n", "\n")
+	privateKeyStr = strings.TrimSpace(privateKeyStr)
+	mchPrivateKey, err := utils.LoadPrivateKey(privateKeyStr)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+	opts := []core.ClientOption{
+		option.WithWechatPayAutoAuthCipher(c.MchId, c.CertNum, mchPrivateKey, c.Secret),
+	}
+	client, err := core.NewClient(ctx, opts...)
+	if err != nil {
+		return nil, err
+	}
+	svc := refunddomestic.RefundsApiService{Client: client}
+	resp, _, err := svc.QueryByOutRefundNo(ctx,
+		refunddomestic.QueryByOutRefundNoRequest{
+			OutRefundNo: core.String(outRefundNo),
 		},
 	)
 	if err != nil {

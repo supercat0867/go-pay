@@ -1,7 +1,6 @@
 # go-pay
 
-go-pay是一个基于grpc微服务的支付网关项目，目前支持微信 JSAPI 支付，后续根据业务需求进行扩展例如：支付宝、银联等。适合在内网环境中部署，提供高效、安全的支付接口。同时支持通过
-HTTP 对外提供支付通知回调接口。
+go-pay是一个基于grpc微服务的支付网关项目，目前支持微信 JSAPI 支付，后续根据业务需求进行扩展例如：支付宝、银联等。适合在内网环境中部署，提供高效、安全的支付接口。
 
 ## 功能特性
 
@@ -39,7 +38,6 @@ DB_PASSWORD=123456
 DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=go_pay
-NOTIFY_DOMAIN=http://localhost:8080
 ```
 
 ### 启动服务
@@ -53,14 +51,6 @@ NOTIFY_DOMAIN=http://localhost:8080
    ```bash
    go run cmd/grpc/main.go
    ```
-
-#### 启动 HTTP 服务
-
-1. HTTP 服务运行在 localhost:8080。
-2. 支支付通知接口，监听来自微信支付服务器的回调请求,执行以下命令启动服务:
-     ```bash
-     go run cmd/http/main.go
-     ```      
 
 ### 客户端示例
 
@@ -137,6 +127,7 @@ func main() {
 		ExpireTime:  "1731674980000",
 		Openid:      "ou****************RM",
 		OutTradeNo:  "S202411111111111",
+		NotifyUrl:   "http://127.0.0.1:8080",
 	})
 	if err != nil {
 		log.Fatalf("调用失败: %v", err)

@@ -9,7 +9,6 @@ import (
 	"go-pay/pkg/wechatpay/jsapi"
 	pb "go-pay/proto"
 	"log"
-	"os"
 	"strconv"
 )
 
@@ -120,8 +119,7 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 		return nil, errors.New("expire time format error")
 	}
 
-	notifyUrl := fmt.Sprintf("%s/wechatpay/notify/%s", os.Getenv("NOTIFY_DOMAIN"), merchant.MchID)
-	prepayInfo, err := client.GetPrepayInfo(req.Description, req.OutTradeNo, req.Openid, notifyUrl,
+	prepayInfo, err := client.GetPrepayInfo(req.Description, req.OutTradeNo, req.Openid, req.NotifyUrl,
 		expireTime, req.Amount)
 	if err != nil {
 		return nil, err
@@ -129,13 +127,14 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 
 	// 创建支付记录
 	pay := &model.Order{
-		MchID:    merchant.MchID,
-		TradeNo:  req.OutTradeNo,
-		PayState: model.PayStatePending,
-		PayType:  model.PayTypeWechatJSAPI,
-		Amount:   req.Amount,
-		OpenID:   req.Openid,
-		ExpireAt: expireTime,
+		MchID:     merchant.MchID,
+		TradeNo:   req.OutTradeNo,
+		PayState:  model.PayStatePending,
+		PayType:   model.PayTypeWechatJSAPI,
+		Amount:    req.Amount,
+		OpenID:    req.Openid,
+		ExpireAt:  expireTime,
+		NotifyUrl: req.NotifyUrl,
 	}
 	if err = s.OrderRepo.Create(pay); err != nil {
 		log.Println(err)
@@ -172,8 +171,7 @@ func (s *Service) WechatPayRefund(req *pb.WechatPayRefundRequest) (*pb.WechatPay
 	// 实例化jsapi client
 	client := jsapi.NewClient(merchant.AppID, merchant.MchID, merchant.Secret, merchant.Cert, merchant.CertNum)
 	// 发起退款
-	notifyUrl := fmt.Sprintf("%s/wechatpay/refund/%s", os.Getenv("NOTIFY_DOMAIN"), merchant.MchID)
-	resp, err := client.Refund(order.TransactionID, req.OutRefundNo, req.Reason, notifyUrl, req.Refund, req.Total)
+	resp, err := client.Refund(order.TradeNo, req.OutRefundNo, req.Reason, req.NotifyUrl, req.Refund, req.Total)
 	if err != nil {
 		return nil, err
 	}
@@ -181,6 +179,7 @@ func (s *Service) WechatPayRefund(req *pb.WechatPayRefundRequest) (*pb.WechatPay
 	order.RefundNo = req.OutRefundNo
 	order.RefundID = *resp.RefundId
 	order.PayState = model.PayStateRefund
+	order.NotifyUrl = req.NotifyUrl
 	if err = s.OrderRepo.Update(order); err != nil {
 		log.Println(err)
 	}

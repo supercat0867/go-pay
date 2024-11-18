@@ -21,7 +21,8 @@ func (r *OrderRepo) Create(pay *model.Order) error {
 
 func (r *OrderRepo) FindByMchIDAndOrderID(mchId, orderId string) (*model.Order, error) {
 	var order model.Order
-	if err := r.db.Where("MchID = ?", mchId).Where("TradeNo = ?", orderId).First(&order).Error; err != nil {
+	if err := r.db.Where("MchID = ?", mchId).Where("TradeNo = ?", orderId).Preload("Merchant").
+		First(&order).Error; err != nil {
 		return nil, err
 	}
 	return &order, nil

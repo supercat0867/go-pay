@@ -127,17 +127,47 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 
 	// 创建支付记录
 	pay := &model.Order{
-		MchID:     merchant.MchID,
-		TradeNo:   req.OutTradeNo,
-		PayState:  model.PayStatePending,
-		PayType:   model.PayTypeWechatJSAPI,
-		Amount:    req.Amount,
-		OpenID:    req.Openid,
-		ExpireAt:  expireTime,
-		NotifyUrl: req.NotifyUrl,
+		MerchantID: merchant.ID,
+		Desc:       req.Description,
+		MchID:      merchant.MchID,
+		TradeNo:    req.OutTradeNo,
+		PayState:   model.PayStatePending,
+		PayType:    model.PayTypeWechatJSAPI,
+		Amount:     req.Amount,
+		OpenID:     req.Openid,
+		ExpireAt:   expireTime,
+		NotifyUrl:  req.NotifyUrl,
 	}
 	if err = s.OrderRepo.Create(pay); err != nil {
 		log.Println(err)
+	}
+
+	return &pb.WechatPrepayInfoJsAPIResponse{
+		AppId:     prepayInfo.AppId,
+		TimeStamp: prepayInfo.Timestamp,
+		NonceStr:  prepayInfo.NonceStr,
+		Package:   prepayInfo.Package,
+		PaySign:   prepayInfo.PaySign,
+		SignType:  prepayInfo.SignType,
+	}, nil
+}
+
+// WechatRePayInfoJsAPI 重新拉去微信支付
+func (s *Service) WechatRePayInfoJsAPI(req *pb.WechatRePayRequest) (*pb.WechatPrepayInfoJsAPIResponse, error) {
+	// 检查订单是否已存在
+	order, err := s.OrderRepo.FindByMchIDAndOrderID(req.MchId, req.OutTradeNo)
+	if err != nil {
+		return nil, errors.New("order is not exists")
+	}
+
+	// 实例化jsapi client
+	client := jsapi.NewClient(order.Merchant.AppID, order.Merchant.MchID, order.Merchant.Secret,
+		order.Merchant.Cert, order.Merchant.CertNum)
+	// 获取预支付信息
+	prepayInfo, err := client.GetPrepayInfo(order.Desc, req.OutTradeNo, order.OpenID, order.NotifyUrl,
+		order.ExpireAt, order.Amount)
+	if err != nil {
+		return nil, err
 	}
 
 	return &pb.WechatPrepayInfoJsAPIResponse{

@@ -16,6 +16,6 @@ RUN go build -o /app/main .
 
 WORKDIR /app
 
-EXPOSE 8080
+EXPOSE 9090
 
 CMD ["./main"]

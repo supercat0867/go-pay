@@ -42,9 +42,16 @@ message WechatPayRefundResponse{
   string channel = 5; // 退款渠道
 }
 
+message WechatRePayRequest{
+  string mch_id = 1; // 商户号
+  string out_trade_no = 2; // 商户订单号
+}
+
 
 service PayService {
   rpc GetWechatPrepayInfoJsAPI(WechatPrepayInfoJsAPIRequest) returns (WechatPrepayInfoJsAPIResponse);
 
   rpc WechatPayRefund(WechatPayRefundRequest) returns (WechatPayRefundResponse);
+
+  rpc WechatPayRePayJsAPI(WechatRePayRequest) returns (WechatPrepayInfoJsAPIResponse);
 }

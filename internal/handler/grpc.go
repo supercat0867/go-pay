@@ -23,9 +23,14 @@ func (h *Handler) GetMerchants(ctx context.Context, req *pb.GetMerchantsRequest)
 	return h.Service.GetMerchants(req), nil
 }
 
-// GetWechatPrepayInfoJsAPI 获取微信支付jsapi预支付信息
+// GetWechatPrepayInfoJsAPI 微信jsapi支付
 func (h *Handler) GetWechatPrepayInfoJsAPI(ctx context.Context, req *pb.WechatPrepayInfoJsAPIRequest) (*pb.WechatPrepayInfoJsAPIResponse, error) {
 	return h.Service.GetWechatPrePayInfoJsAPI(req)
+}
+
+// WechatPayRePayJsAPI 微信jsapi重新支付
+func (h *Handler) WechatPayRePayJsAPI(ctx context.Context, req *pb.WechatRePayRequest) (*pb.WechatPrepayInfoJsAPIResponse, error) {
+	return h.Service.WechatRePayInfoJsAPI(req)
 }
 
 // WechatPayRefund 微信支付退款

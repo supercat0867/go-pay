@@ -16,6 +16,7 @@ type Order struct {
 	PayType       PayType   `gorm:"not null;size:1"` // 交易类型
 	OpenID        string    // 微信openid
 	Amount        float32   // 金额
+	Desc          string    // 描述
 	ExpireAt      time.Time `gorm:"not null"`        // 过期时间
 	PayState      PayState  `gorm:"not null;size:1"` // 支付状态
 	NotifyUrl     string    // 回调地址

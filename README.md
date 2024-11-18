@@ -56,7 +56,7 @@ DB_NAME=go_pay
    ```bash
    docker build -t go-pay .
    
-   docker run -d --name go-pay -p 8080:8080 go-pay
+   docker run -d --name go-pay -p 9090:9090 go-pay
    ```
    
 
@@ -109,37 +109,37 @@ func main() {
 package main
 
 import (
-	"context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	pb "go-pay/proto"
-	"log"
+   "context"
+   pb "go-pay/proto"
+   "google.golang.org/grpc"
+   "google.golang.org/grpc/credentials/insecure"
+   "log"
 )
 
 func main() {
-	// 连接到 gRPC 服务器
-	conn, err := grpc.NewClient("127.0.0.1:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("failed to connect: %v", err)
-	}
-	defer conn.Close()
+   // 连接到 gRPC 服务器
+   conn, err := grpc.NewClient("127.0.0.1:9090", grpc.WithTransportCredentials(insecure.NewCredentials()))
+   if err != nil {
+      log.Fatalf("failed to connect: %v", err)
+   }
+   defer conn.Close()
 
-	// 建立连接
-	client := pb.NewPayServiceClient(conn)
+   // 建立连接
+   client := pb.NewPayServiceClient(conn)
 
-	resp, err := client.GetWechatPrepayInfoJsAPI(context.Background(), &pb.WechatPrepayInfoJsAPIRequest{
-		MchId:       "123456", // 商户号
-		Amount:      1,
-		Description: "测试商品",
-		ExpireTime:  "1731674980000",
-		Openid:      "ou****************RM",
-		OutTradeNo:  "S202411111111111",
-		NotifyUrl:   "http://127.0.0.1:8080",
-	})
-	if err != nil {
-		log.Fatalf("调用失败: %v", err)
-	}
-	log.Printf("调用结果: %s", resp.String())
+   resp, err := client.GetWechatPrepayInfoJsAPI(context.Background(), &pb.WechatPrepayInfoJsAPIRequest{
+      MchId:       "123456", // 商户号
+      Amount:      1,
+      Description: "测试商品",
+      ExpireTime:  "1731674980000",
+      Openid:      "ou****************RM",
+      OutTradeNo:  "S202411111111111",
+      NotifyUrl:   "http://127.0.0.1:8080",
+   })
+   if err != nil {
+      log.Fatalf("调用失败: %v", err)
+   }
+   log.Printf("调用结果: %s", resp.String())
 }
 
 ```

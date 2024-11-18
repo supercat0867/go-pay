@@ -1,4 +1,4 @@
-FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/golang:1.22.4-bookworm
+FROM swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/golang:1.23.3-bookworm
 
 ENV GOPROXY=https://goproxy.cn,direct
 

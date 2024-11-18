@@ -49,7 +49,7 @@ DB_NAME=go_pay
 1. gRPC 服务运行在 localhost:9090。
 2. 执行以下命令启动服务：
    ```bash
-   go run cmd/grpc/main.go
+   go run cmd/main.go
    ```
 
 ### 客户端示例
@@ -60,13 +60,12 @@ DB_NAME=go_pay
 package main
 
 import (
-   "context"
-   "google.golang.org/grpc"
-   "google.golang.org/grpc/credentials/insecure"
-   pb "go-pay/proto"
-   "log"
+	"context"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	pb "go-pay/proto"
+	"log"
 )
-
 
 func main() {
 	// 连接到 gRPC 服务器
@@ -78,7 +77,7 @@ func main() {
 
 	// 建立连接
 	client := pb.NewMerchantServiceClient(conn)
-	
+
 	resp, err := client.GetMerchants(context.Background(), &pb.GetMerchantsRequest{
 		Page:     1,
 		PageSize: 10,
@@ -136,6 +135,7 @@ func main() {
 }
 
 ```
+
 运行结果：
 
 ```bash 

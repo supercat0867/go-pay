@@ -51,6 +51,14 @@ DB_NAME=go_pay
    ```bash
    go run cmd/main.go
    ```
+#### docker启动
+
+   ```bash
+   docker build -t go-pay .
+   
+   docker run -d --name go-pay -p 8080:8080 go-pay
+   ```
+   
 
 ### 客户端示例
 

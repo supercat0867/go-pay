@@ -10,6 +10,7 @@ import (
 	pb "go-pay/proto"
 	"log"
 	"strconv"
+	"time"
 )
 
 type Service struct {
@@ -152,12 +153,17 @@ func (s *Service) GetWechatPrePayInfoJsAPI(req *pb.WechatPrepayInfoJsAPIRequest)
 	}, nil
 }
 
-// WechatRePayInfoJsAPI 重新拉去微信支付
+// WechatRePayInfoJsAPI 重新拉起微信支付
 func (s *Service) WechatRePayInfoJsAPI(req *pb.WechatRePayRequest) (*pb.WechatPrepayInfoJsAPIResponse, error) {
 	// 检查订单是否已存在
 	order, err := s.OrderRepo.FindByMchIDAndOrderID(req.MchId, req.OutTradeNo)
 	if err != nil {
 		return nil, errors.New("order is not exists")
+	}
+
+	// 检查订单是否已过期
+	if time.Now().After(order.ExpireAt) {
+		return nil, errors.New("order is expired")
 	}
 
 	// 实例化jsapi client

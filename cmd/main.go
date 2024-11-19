@@ -52,6 +52,12 @@ func main() {
 					if err = orderRepo.Update(&order); err != nil {
 						log.Printf("订单商家单号：%s状态更新失败：%v", order.TradeNo, err)
 					}
+				} else if time.Now().After(order.ExpireAt) {
+					// 订单支付已过期，关闭订单
+					order.PayState = model.PayStateClosed
+					if err = orderRepo.Update(&order); err != nil {
+						log.Printf("订单商家单号：%s状态更新失败：%v", order.TradeNo, err)
+					}
 				}
 			}
 			time.Sleep(time.Second * 1)
